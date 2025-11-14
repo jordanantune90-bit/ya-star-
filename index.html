@@ -1,0 +1,309 @@
+<!--
+  Ya$tar Gallery – Mobile‑friendly chaotic edition
+
+  This page provides a comfortable, phone‑first experience while still
+  capturing the chaotic, punk energy you described.  It uses your MP3
+  beat (beat.mp3) rather than an embedded YouTube video, so the audio
+  begins seamlessly after a user tap.  Browsers block autoplay of
+  audible media until the user interacts【387488733645329†L176-L188】, so the
+  intro presents a single “Click to continue” prompt on a black screen.
+
+  After tapping, a darkened photo of the gothic castle fades in and
+  oversized punk‑style text with your name is layered across the
+  background at various angles.  In the center a glass card displays
+  your logo (logo.png) and the label “Ya$tar Gallery.”  Everything is
+  responsive for phones – fonts and spacing scale down gracefully.
+
+  Files needed in the same folder:
+    • beat.mp3 – your audio file (renamed for brevity)
+    • logo.png – the neon Ya$tar logo
+    • castle.jpg – the gothic background image
+
+  Customise by editing the CSS variables near the top: you can adjust
+  colours, font sizes, number of punk text layers or the card size.
+-->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Ya$tar Gallery</title>
+  <!-- Load Google Fonts for punk style.  Nosifer provides a dripping, chaotic look
+       reminiscent of underground flyers.  Poppins remains for basic legibility. -->
+  <link href="https://fonts.googleapis.com/css2?family=Nosifer&family=Poppins:wght@400;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg-dark: #000;
+      --glass-bg: rgba(255, 255, 255, 0.12);
+      --glass-border: rgba(255, 255, 255, 0.25);
+      /* A neon green accent for better visibility against the dark backdrop */
+      --accent: #00ffaa;
+      --text-shadow: rgba(0, 255, 170, 0.6);
+      /* number of giant punk text layers */
+      --punk-layers: 6;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: 'Poppins', Arial, sans-serif;
+      background: var(--bg-dark);
+      color: #fff;
+      min-height: 100vh;
+      overflow-x: hidden;
+      position: relative;
+      -webkit-font-smoothing: antialiased;
+    }
+    /* Intro overlay */
+    #intro {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: var(--bg-dark);
+      z-index: 10;
+      cursor: pointer;
+      transition: opacity 0.6s ease;
+    }
+    #intro.hidden { opacity: 0; pointer-events: none; }
+    #intro h1 {
+      font-size: 1.8rem;
+      letter-spacing: 1px;
+      text-align: center;
+    }
+    /* Main content wrapper */
+    #page { display: none; position: relative; }
+    body.entered #page { display: block; }
+    /* Background image */
+    #background {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: url('castle.jpg') center/cover no-repeat;
+      filter: brightness(0.25);
+      z-index: -2;
+    }
+    /* Punk text layers */
+    .punk-layer {
+      position: fixed;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%) rotate(var(--rot));
+      font-size: 14vw;
+      font-weight: 400;
+      /* Use the Nosifer font for a graffiti‑like, dripping appearance */
+      font-family: 'Nosifer', cursive;
+      color: rgba(255, 255, 255, 0.04);
+      text-transform: uppercase;
+      white-space: nowrap;
+      pointer-events: none;
+      user-select: none;
+      z-index: -1;
+    }
+    /* Glass card
+       Position fixed so the card remains centered on both desktop and mobile.
+       Drop animation slides it in from above upon entering. */
+    .card {
+      position: fixed;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      width: 85%;
+      max-width: 420px;
+      padding: 2rem 1.5rem;
+      backdrop-filter: blur(8px) saturate(180%);
+      -webkit-backdrop-filter: blur(8px) saturate(180%);
+      background: var(--glass-bg);
+      border: 1px solid var(--glass-border);
+      border-radius: 12px;
+      box-shadow: 0 0 25px rgba(0, 255, 170, 0.15);
+      text-align: center;
+      animation: drop 0.8s ease forwards;
+      opacity: 0;
+      z-index: 2;
+    }
+    body.entered .card { opacity: 1; }
+    .card img {
+      max-width: 70%;
+      margin: 0 auto 1rem;
+      display: block;
+    }
+    .card h1 {
+      font-size: 1.8rem;
+      letter-spacing: 2px;
+      margin-bottom: 0.2rem;
+      text-shadow: 0 0 6px var(--text-shadow);
+      /* bright white for the name to stand out against the dark background */
+      color: #ffffff;
+    }
+    .card h2 {
+      font-size: 0.9rem;
+      font-weight: 400;
+      letter-spacing: 1px;
+      opacity: 0.9;
+      color: var(--accent);
+    }
+
+    .links {
+      margin-top: 1rem;
+      display: flex;
+      justify-content: center;
+      gap: 1.5rem;
+    }
+    .links a {
+      font-size: 0.9rem;
+      color: var(--accent);
+      text-decoration: none;
+      position: relative;
+      transition: color 0.3s ease;
+    }
+    .links a::after {
+      content: "";
+      position: absolute;
+      bottom: -2px;
+      left: 0;
+      width: 100%;
+      height: 2px;
+      background: var(--accent);
+      transform: scaleX(0);
+      transform-origin: left;
+      transition: transform 0.3s ease;
+    }
+    .links a:hover {
+      color: #00a8c6;
+    }
+    .links a:hover::after {
+      transform: scaleX(1);
+    }
+    @keyframes drop {
+      0% { transform: translate(-50%, -70%); }
+      100% { transform: translate(-50%, -50%); }
+    }
+    /* Mobile adjustments */
+    @media (max-width: 480px) {
+      #intro h1 { font-size: 1.5rem; }
+      .card { width: 90%; padding: 1.5rem 1rem; }
+      .card h1 { font-size: 1.5rem; }
+      .card h2 { font-size: 0.8rem; }
+      .punk-layer { font-size: 20vw; }
+    }
+
+    /* Audio HUD */
+    #hud {
+      position: fixed;
+      bottom: 1rem;
+      left: 1rem;
+      color: var(--accent);
+      font-size: 0.8rem;
+      opacity: 0.9;
+      display: none;
+      z-index: 3;
+    }
+
+    /* Large logo overlay behind content */
+    #logo-overlay {
+      position: fixed;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      z-index: -1;
+      opacity: 0.03;
+      pointer-events: none;
+    }
+    #logo-overlay img {
+      width: 80vw;
+      max-width: 800px;
+      height: auto;
+      filter: blur(2px);
+    }
+  </style>
+</head>
+<body>
+  <!-- Intro overlay requesting interaction -->
+  <div id="intro">
+    <h1>Click to continue</h1>
+  </div>
+  <!-- Fixed background image -->
+  <div id="background"></div>
+  <!-- Subtle logo overlay behind everything -->
+  <div id="logo-overlay"><img src="yastar_punk_logo.png" alt="Ya$tar logo overlay"></div>
+  <!-- Punk text layers: generated dynamically via JS -->
+  <div id="punk-container"></div>
+  <!-- Main page content (hidden until user enters) -->
+  <div id="page">
+    <div class="card">
+      <!-- Updated punk‑style logo -->
+      <img src="yastar_punk_logo.png" alt="Ya$tar punk logo" />
+      <h1>Ya$tar</h1>
+      <h2>Gallery</h2>
+      <!-- Social links: only Instagram and SoundCloud -->
+      <div class="links">
+        <a href="https://www.instagram.com/jy_r3x?igsh=MXhhMjN0Ym42N3Vmdg%3D%3D&utm_source=qr" target="_blank" rel="noopener">Instagram</a>
+        <a href="https://on.soundcloud.com/AwoueaA3j2XHHftkQb" target="_blank" rel="noopener">SoundCloud</a>
+      </div>
+    </div>
+  </div>
+  <!-- Simple HUD to indicate audio status -->
+  <div id="hud">Loading beat…</div>
+  <!-- MP3 beat from the user: renamed locally to avoid spaces. -->
+  <!-- Use the original audio file name.  Keep in the same folder.  Browsers handle spaces fine for local files. -->
+  <audio id="beat" src="[FREE FOR PROFIT] osamason type beat heaven raiser.mp3" loop></audio>
+  <script>
+    // Generate multiple punk layers with random rotations and offsets
+    const punkContainer = document.getElementById('punk-container');
+    const layers = parseInt(getComputedStyle(document.documentElement).getPropertyValue('--punk-layers'));
+    for (let i = 0; i < layers; i++) {
+      const div = document.createElement('div');
+      div.className = 'punk-layer';
+      div.textContent = 'YA$TAR';
+      // random rotation between -20 and 20 degrees
+      const rot = (Math.random() * 40 - 20).toFixed(1) + 'deg';
+      div.style.setProperty('--rot', rot);
+      // random offset to break symmetry
+      const offsetX = (Math.random() * 20 - 10).toFixed(0);
+      const offsetY = (Math.random() * 20 - 10).toFixed(0);
+      div.style.transform = `translate(calc(-50% + ${offsetX}px), calc(-50% + ${offsetY}px)) rotate(${rot})`;
+      punkContainer.appendChild(div);
+    }
+    // Handle intro click to start audio and show page
+    const intro = document.getElementById('intro');
+    const beat = document.getElementById('beat');
+    intro.addEventListener('click', function () {
+      intro.classList.add('hidden');
+      document.body.classList.add('entered');
+      // After fade, remove the intro from the flow to avoid lingering text.
+      setTimeout(function () {
+        // Remove the intro element entirely to eliminate lingering ghost text
+        intro.remove();
+      }, 600);
+      /*
+       * Reset and play the beat when the user enters.  Browsers block autoplay of
+       * audio until a click event occurs【387488733645329†L176-L188】.  We pause and reset
+       * the currentTime to ensure the track starts from the beginning.  Volume is
+       * set to a comfortable level.  We avoid calling load() because the file is
+       * already present and some browsers treat load() as a separate gesture.
+       */
+      beat.pause();
+      beat.currentTime = 0;
+      beat.volume = 1;
+      // update HUD to show loading
+      const hud = document.getElementById('hud');
+      if (hud) {
+        hud.style.display = 'block';
+        hud.textContent = 'Loading beat…';
+      }
+      // When the audio can play through, update HUD to show playing
+      beat.oncanplaythrough = function () {
+        if (hud) hud.textContent = 'Beat playing…';
+      };
+      beat.play().catch(function (err) {
+        console.error('Audio playback failed:', err);
+      });
+    });
+  </script>
+</body>
+</html>
